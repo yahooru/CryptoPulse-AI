@@ -12,6 +12,7 @@ const symbolSchema = z
   .transform((symbol) => symbol.toUpperCase())
 
 const portfolioNumberSchema = z.number().finite().nonnegative().max(1_000_000_000)
+const addressSchema = z.string().trim().regex(/^0x[a-fA-F0-9]{40}$/, "Enter a valid BNB Chain token contract.")
 
 export const portfolioInputSchema = z
   .object({
@@ -36,6 +37,18 @@ export const analyzeBodySchema = z
 export const onchainBodySchema = z
   .object({
     walletAddress: z.string().trim().regex(/^0x[a-fA-F0-9]{40}$/, "Connect a valid BNB Chain wallet address."),
+    customTokens: z
+      .array(
+        z
+          .object({
+            address: addressSchema,
+            symbol: symbolSchema.optional(),
+            decimals: z.number().int().min(0).max(36).optional(),
+          })
+          .strict(),
+      )
+      .max(12, "At most 12 custom token contracts are supported per wallet read.")
+      .optional(),
   })
   .strict()
 
