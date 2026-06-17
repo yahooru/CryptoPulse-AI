@@ -594,7 +594,7 @@ function buildBacktestSummary(
     currentDrawdownProxy: round(currentDrawdownProxy),
     optimizedDrawdownProxy: round(optimizedDrawdownProxy),
     notes: [
-      "The UI produces a backtestable strategy spec; a full runner can replay the same universe with CMC historical OHLCV.",
+      "The API attempts a daily replay first; quote-window proxy metrics are used only when historical providers cannot supply enough observations.",
       "Transaction cost and slippage assumptions are included in the exported spec for judge reproducibility.",
       "No live execution is triggered; Track 2 asks for strategy skills, not a live-trading agent.",
     ],
@@ -685,6 +685,7 @@ function buildStrategySpec(
     dataSources: [
       "CoinMarketCap quotes/latest for price, market cap, volume, and return windows",
       "CoinMarketCap Fear and Greed latest for sentiment regime",
+      "Binance daily klines for replay fallback when CMC historical quotes are unavailable",
       "BNB Smart Chain JSON-RPC for wallet balances when the user connects a wallet",
       "OpenAI Responses API for structured reasoning notes when configured",
     ],

@@ -1,22 +1,24 @@
 # CryptoPulse AI
 
-CryptoPulse AI is an AI Portfolio Doctor for the BNB Hack Track 2 CMC Strategy Skill track. It diagnoses a crypto portfolio, reads supported BNB Smart Chain wallet balances, pulls live CoinMarketCap market data, generates risk-aware rebalance recommendations, and exports a backtestable strategy specification.
+CryptoPulse AI is an AI Portfolio Doctor for the BNB Hack Track 2 CMC Strategy Skill track. It diagnoses a crypto portfolio, reads BNB Smart Chain wallet balances, pulls live CoinMarketCap market data, generates risk-aware rebalance recommendations, runs a dynamic replay when historical data is available, and exports a backtestable strategy specification.
 
 Production: https://cryptopulse-ai-eosin.vercel.app
 
-The repo now includes both the visual Next.js demo and a concrete CMC-style Skill artifact under `skills/cryptopulse-portfolio-doctor`. Reports are generated from user input or a connected wallet, CoinMarketCap data is fetched server-side, API keys never leave the backend, and the exported strategy JSON contains the universe, target allocation, signal rules, filters, risk guards, costs, slippage, benchmark, and rebalance assumptions needed by a backtest runner.
+The repo now includes both the visual Next.js demo and a concrete CMC-style Skill artifact under `skills/cryptopulse-portfolio-doctor`. Reports are generated from user input or a connected wallet, CoinMarketCap data is fetched server-side, API keys never leave the backend, and the exported strategy JSON contains the universe, target allocation, signal rules, filters, risk guards, costs, slippage, benchmark, replay rules, and simulation-only execution intents needed by a backtest runner.
 
 ## What It Does
 
 - Accepts manual portfolio weights like `BTC 45%`, `ETH 35%`, `BNB 20%`.
 - Connects an injected EVM wallet and switches to BNB Smart Chain for on-chain intake.
-- Reads native BNB plus supported BEP-20 balances through BNB Chain JSON-RPC.
+- Reads native BNB, catalog BEP-20 balances, and optional user-supplied BEP-20 token contracts through BNB Chain JSON-RPC.
 - Resolves assets to stable CoinMarketCap ids before requesting quotes.
 - Uses CoinMarketCap quotes and Fear and Greed data for market regime scoring.
 - Calculates health, risk, diversification, sector exposure, role exposure, and drawdown proxies.
 - Produces rebalance targets and an exportable strategy spec for Track 2 judging.
-- Attempts a daily historical CoinMarketCap replay for the exported universe.
-- Falls back to quote-window proxy metrics when historical CMC data is unavailable on the configured plan.
+- Attempts a daily historical CoinMarketCap replay for the exported universe, then fills missing exchange-traded assets with Binance daily klines.
+- Uses a dynamic weekly replay for the optimized strategy, including momentum-based stable-buffer and satellite-sleeve adjustments.
+- Falls back to clearly labeled quote-window proxy metrics only when historical providers cannot supply enough observations.
+- Emits reviewable simulation-only trade tickets; it never requests approvals, signs swaps, or moves funds.
 - Uses OpenAI to generate a concise investment-committee narrative when `OPENAI_API_KEY` is configured.
 - Falls back to deterministic reasoning if OpenAI is unavailable, so the core workflow still completes.
 
