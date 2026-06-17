@@ -6,6 +6,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  Coins,
   Download,
   Loader2,
   PlugZap,
@@ -36,12 +37,19 @@ type AnalyzeResponse = {
 
 type OnchainResponse = {
   walletAddress?: string
-  holdings?: Array<PortfolioInput & { balance: number; price: number; name: string }>
+  holdings?: Array<PortfolioInput & { balance: number; price: number; name: string; source?: "catalog" | "custom" }>
+  coverage?: {
+    catalogAssetsScanned: number
+    customTokensScanned: number
+    pricedAssets: number
+    unpricedCustomTokens: Array<{ address: string; symbol: string }>
+  }
   supportedSymbols?: string[]
   error?: string
 }
 
 const PORTFOLIO_PLACEHOLDER = "Paste one asset per line using SYMBOL WEIGHT%.\nThe report is generated only from your input or your connected BNB Chain wallet."
+const CUSTOM_TOKEN_PLACEHOLDER = "Optional custom BEP-20 contracts, one per line.\n0xTokenContract SYMBOL DECIMALS"
 
 export function PortfolioLab() {
   const [portfolioText, setPortfolioText] = useState(DEFAULT_PORTFOLIO_TEXT)
@@ -51,6 +59,8 @@ export function PortfolioLab() {
   const [error, setError] = useState<string | null>(null)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [onchainPositions, setOnchainPositions] = useState<PortfolioInput[] | null>(null)
+  const [customTokensText, setCustomTokensText] = useState("")
+  const [walletCoverage, setWalletCoverage] = useState<OnchainResponse["coverage"] | null>(null)
 
   useEffect(() => {
     try {
@@ -110,7 +120,7 @@ export function PortfolioLab() {
       const response = await fetch("/api/onchain/portfolio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress: address }),
+        body: JSON.stringify({ walletAddress: address, customTokens: parseCustomTokens(customTokensText) }),
       })
       const json = (await response.json()) as OnchainResponse
       if (!response.ok || !json.holdings) {
@@ -123,6 +133,7 @@ export function PortfolioLab() {
 
       setWalletAddress(address)
       setOnchainPositions(json.holdings)
+      setWalletCoverage(json.coverage ?? null)
       setPortfolioText(json.holdings.map((holding) => `${holding.symbol} ${formatPercent(holding.weight ?? 0)}`).join("\n"))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wallet connection failed.")
@@ -138,6 +149,7 @@ export function PortfolioLab() {
     setError(null)
     setWalletAddress(null)
     setOnchainPositions(null)
+    setWalletCoverage(null)
     setPortfolioText(DEFAULT_PORTFOLIO_TEXT)
     try {
       clearStoredAnalysis(window.localStorage)
@@ -169,12 +181,24 @@ export function PortfolioLab() {
                 setPortfolioText(event.target.value)
                 setOnchainPositions(null)
                 setWalletAddress(null)
+                setWalletCoverage(null)
               }}
               className="cp-textarea"
               placeholder={PORTFOLIO_PLACEHOLDER}
               spellCheck={false}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "portfolio-error" : undefined}
+            />
+            <label htmlFor="custom-tokens" className="text-sm font-medium text-white">
+              Custom BNB Chain tokens
+            </label>
+            <textarea
+              id="custom-tokens"
+              value={customTokensText}
+              onChange={(event) => setCustomTokensText(event.target.value)}
+              className="cp-textarea cp-textarea-compact"
+              placeholder={CUSTOM_TOKEN_PLACEHOLDER}
+              spellCheck={false}
             />
             <div className="flex flex-wrap items-center gap-3">
               <ShimmerButton
@@ -201,6 +225,23 @@ export function PortfolioLab() {
                 <PlugZap className="h-4 w-4" aria-hidden="true" />
                 BNB Chain snapshot loaded from {shortAddress(walletAddress)}
               </p>
+            )}
+            {walletCoverage && (
+              <div className="cp-wallet-coverage">
+                <Coins className="h-4 w-4 text-orange-200" aria-hidden="true" />
+                <div>
+                  <p>
+                    Wallet coverage: {walletCoverage.pricedAssets} priced asset
+                    {walletCoverage.pricedAssets === 1 ? "" : "s"} from {walletCoverage.catalogAssetsScanned} catalog checks
+                    {walletCoverage.customTokensScanned ? ` and ${walletCoverage.customTokensScanned} custom token checks` : ""}.
+                  </p>
+                  {walletCoverage.unpricedCustomTokens.length > 0 && (
+                    <p className="mt-1 text-white/45">
+                      Unpriced custom tokens: {walletCoverage.unpricedCustomTokens.map((token) => token.symbol).join(", ")}
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
             {error && (
               <p id="portfolio-error" className="cp-error-line" role="alert">
@@ -305,7 +346,8 @@ function AnalysisResults({ analysis }: { analysis: PortfolioAnalysis }) {
             <Metric label={analysis.backtest.method === "historical-replay" ? "Optimized drawdown" : "Optimized drawdown proxy"} value={formatPercent(analysis.backtest.optimizedDrawdownProxy)} highlight />
           </div>
           <p className="mt-4 text-xs text-white/40">
-            Method: {analysis.backtest.method === "historical-replay" ? "CMC historical daily replay" : "CMC quote-window proxy"}
+            Method: {analysis.backtest.method === "historical-replay" ? `${formatProvider(analysis.backtest.dataProvider)} dynamic weekly replay` : "CMC quote-window proxy"}
+            {analysis.backtest.dataCoverage ? ` / Coverage ${analysis.backtest.dataCoverage.coveragePct}%` : ""}
           </p>
           <button className="cp-secondary-action mt-5" onClick={() => downloadSpec(analysis)}>
             <Download className="h-4 w-4" aria-hidden="true" />
@@ -457,6 +499,29 @@ function formatPercent(value: number) {
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+function parseCustomTokens(text: string) {
+  return text
+    .split(/\r?\n|,/)
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const [address, symbol, decimals] = row.split(/\s+/)
+      return {
+        address,
+        symbol,
+        decimals: decimals ? Number(decimals) : undefined,
+      }
+    })
+    .filter((token) => /^0x[a-fA-F0-9]{40}$/.test(token.address))
+}
+
+function formatProvider(provider: PortfolioAnalysis["backtest"]["dataProvider"]) {
+  if (provider === "binance") return "Binance"
+  if (provider === "coinmarketcap+binance") return "CMC + Binance"
+  if (provider === "coinmarketcap") return "CMC"
+  return "historical"
 }
 
 function formatTimestamp(value: string) {
