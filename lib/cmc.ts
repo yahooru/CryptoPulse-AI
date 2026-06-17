@@ -207,6 +207,7 @@ function normalizeHistoricalPayload(payload: CmcHistoricalPayload | undefined, f
   return {
     cmcId: payload?.id ?? fallbackId,
     symbol,
+    source: "coinmarketcap",
     points,
   }
 }
