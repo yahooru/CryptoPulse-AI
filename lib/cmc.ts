@@ -126,7 +126,8 @@ export async function resolveCmcIdsForBscContracts(tokens: Array<{ address: `0x$
   const bestByAddress = new Map<string, CmcMapAsset>()
   for (const asset of mapped.data ?? []) {
     const address = asset.platform?.token_address?.toLowerCase()
-    const requested = address ? requestedByAddress.get(address) : undefined
+    if (!address) continue
+    const requested = requestedByAddress.get(address)
     if (!requested || asset.symbol.toUpperCase() !== requested.symbol) continue
 
     const current = bestByAddress.get(address)
