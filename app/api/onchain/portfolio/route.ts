@@ -26,8 +26,17 @@ export async function POST(request: Request) {
     }
 
     const walletAddress = parsedBody.data.walletAddress
-    const holdings = await readBnbChainPortfolio(walletAddress)
-    return NextResponse.json({ walletAddress, holdings, supportedSymbols: BSC_SUPPORTED_ASSET_SYMBOLS })
+    const customTokens = (parsedBody.data.customTokens ?? []).map((token) => ({
+      ...token,
+      address: token.address as `0x${string}`,
+    }))
+    const portfolio = await readBnbChainPortfolio(walletAddress, customTokens)
+    return NextResponse.json({
+      walletAddress,
+      holdings: portfolio.holdings,
+      coverage: portfolio.coverage,
+      supportedSymbols: BSC_SUPPORTED_ASSET_SYMBOLS,
+    })
   } catch (error) {
     if (error instanceof CmcApiError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
