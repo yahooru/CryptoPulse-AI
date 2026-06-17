@@ -190,11 +190,18 @@ Returns:
 
 ```json
 {
-  "walletAddress": "0x0000000000000000000000000000000000000000"
+  "walletAddress": "0x0000000000000000000000000000000000000000",
+  "customTokens": [
+    {
+      "address": "0x0000000000000000000000000000000000000001",
+      "symbol": "TOKEN",
+      "decimals": 18
+    }
+  ]
 }
 ```
 
-Returns supported non-zero BNB Chain holdings with balances, prices, USD values, and computed weights.
+Returns non-zero BNB Chain holdings with balances, prices, USD values, computed weights, and a coverage summary for catalog, custom, priced, and unpriced assets.
 
 ## Track 2 Alignment
 
