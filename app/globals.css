@@ -619,6 +619,10 @@
   color: var(--color-text-faint);
 }
 
+.cp-textarea-compact {
+  min-height: 6.75rem;
+}
+
 .cp-success-line,
 .cp-error-line {
   display: flex;
@@ -633,6 +637,18 @@
 
 .cp-error-line {
   color: var(--color-danger);
+}
+
+.cp-wallet-coverage {
+  display: flex;
+  gap: var(--space-xs);
+  border: var(--rule-hairline) solid var(--color-rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  background: rgb(255 255 255 / 0.045);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 .cp-score-board {
