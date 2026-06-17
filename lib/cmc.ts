@@ -36,6 +36,15 @@ type CmcHistoricalPayload = {
   }>
 }
 
+type CmcMapAsset = {
+  id: number
+  symbol: string
+  rank?: number
+  platform?: {
+    token_address?: string
+  }
+}
+
 export class CmcApiError extends Error {
   status: number
   code?: number
@@ -68,11 +77,11 @@ export async function resolveCmcIds(symbols: string[]) {
 
   if (!unresolved.length) return resolved
 
-  const mapped = await cmcGet<{ data?: Array<{ id: number; symbol: string; rank?: number }> }>("/v1/cryptocurrency/map", {
+  const mapped = await cmcGet<{ data?: CmcMapAsset[] }>("/v1/cryptocurrency/map", {
     symbol: unresolved.join(","),
   })
 
-  const bestBySymbol = new Map<string, { id: number; symbol: string; rank?: number }>()
+  const bestBySymbol = new Map<string, CmcMapAsset>()
   for (const asset of mapped.data ?? []) {
     const symbol = asset.symbol.toUpperCase()
     if (!unresolved.includes(symbol)) continue
@@ -89,6 +98,49 @@ export async function resolveCmcIds(symbols: string[]) {
   }
 
   return resolved
+}
+
+export async function resolveCmcIdsForBscContracts(tokens: Array<{ address: `0x${string}`; symbol: string }>) {
+  const uniqueTokens = Array.from(
+    new Map(
+      tokens
+        .filter((token) => /^0x[a-fA-F0-9]{40}$/.test(token.address))
+        .map((token) => [
+          token.address.toLowerCase(),
+          {
+            address: token.address.toLowerCase(),
+            symbol: token.symbol.toUpperCase(),
+          },
+        ]),
+    ).values(),
+  )
+  const idsByAddress = new Map<string, number>()
+  if (!uniqueTokens.length) return idsByAddress
+
+  const symbols = Array.from(new Set(uniqueTokens.map((token) => token.symbol)))
+  const requestedByAddress = new Map(uniqueTokens.map((token) => [token.address, token]))
+  const mapped = await cmcGet<{ data?: CmcMapAsset[] }>("/v1/cryptocurrency/map", {
+    symbol: symbols.join(","),
+  })
+
+  const bestByAddress = new Map<string, CmcMapAsset>()
+  for (const asset of mapped.data ?? []) {
+    const address = asset.platform?.token_address?.toLowerCase()
+    const requested = address ? requestedByAddress.get(address) : undefined
+    if (!requested || asset.symbol.toUpperCase() !== requested.symbol) continue
+
+    const current = bestByAddress.get(address)
+    const currentRank = current?.rank ?? Number.MAX_SAFE_INTEGER
+    const candidateRank = asset.rank ?? Number.MAX_SAFE_INTEGER
+    if (!current || candidateRank < currentRank) {
+      bestByAddress.set(address, asset)
+    }
+  }
+
+  for (const [address, asset] of bestByAddress.entries()) {
+    idsByAddress.set(address, asset.id)
+  }
+  return idsByAddress
 }
 
 export async function fetchCmcQuotes(ids: number[]) {

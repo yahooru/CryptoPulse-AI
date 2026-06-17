@@ -1,5 +1,5 @@
 import { ASSET_CATALOG, type AssetMeta, type PortfolioInput } from "@/lib/portfolio"
-import { fetchQuotesForSymbols } from "@/lib/cmc"
+import { fetchCmcQuotes, resolveCmcIdsForBscContracts } from "@/lib/cmc"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 
 const BSC_RPC_URL = process.env.BSC_RPC_URL ?? "https://bsc-dataseed.binance.org"
@@ -96,16 +96,17 @@ export async function readBnbChainPortfolio(
     }
   }
 
-  const quotes = await fetchQuotesForSymbols(nonZeroBalances.map((item) => item.asset.symbol))
-  const priceBySymbol = new Map(quotes.map((quote) => [quote.symbol.toUpperCase(), quote.quote.USD.price]))
+  const quotes = await fetchCmcQuotes(nonZeroBalances.map((item) => item.asset.cmcId).filter((id) => id > 0))
+  const quoteById = new Map(quotes.map((quote) => [quote.id, quote]))
 
   const nonZero = nonZeroBalances
     .map<OnchainHolding>((item) => {
-      const price = priceBySymbol.get(item.asset.symbol) ?? 0
+      const quote = quoteById.get(item.asset.cmcId)
+      const price = quote?.quote.USD.price ?? 0
       const usdValue = item.balance * price
       return {
         symbol: item.asset.symbol,
-        name: item.asset.name,
+        name: quote?.name ?? item.asset.name,
         balance: item.balance,
         amount: item.balance,
         price,
@@ -223,9 +224,26 @@ async function resolveCustomAssets(customTokens: CustomBep20Token[], catalogAsse
     }),
   )
 
-  return results
+  const assets = results
     .map((result) => (result.status === "fulfilled" ? result.value : null))
     .filter((asset): asset is ReadableBscAsset => asset !== null)
+
+  if (!assets.length) return assets
+
+  try {
+    const idsByAddress = await resolveCmcIdsForBscContracts(
+      assets.map((asset) => ({
+        address: asset.bsc.address as `0x${string}`,
+        symbol: asset.symbol,
+      })),
+    )
+    return assets.map((asset) => ({
+      ...asset,
+      cmcId: idsByAddress.get(asset.bsc.address?.toLowerCase() ?? "") ?? 0,
+    }))
+  } catch {
+    return assets
+  }
 }
 
 async function readTokenDecimals(address: `0x${string}`) {
