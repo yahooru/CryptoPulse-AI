@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="cp-app-grid">
         <aside className="cp-sidebar" aria-label="CryptoPulse navigation">
-          <nav className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+          <nav className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:flex lg:flex-col">
             {navItems.map((item) => {
               const Icon = item.icon
               const active = pathname === item.href
