@@ -50,9 +50,10 @@ Next.js App Router UI
                 +--> CoinMarketCap id resolution
                 +--> CoinMarketCap quotes/latest
                 +--> CoinMarketCap quotes/historical when available
+                +--> Binance daily klines for replay fallback
                 +--> CoinMarketCap Fear and Greed
                 +--> Portfolio scoring engine
-                +--> Historical replay engine with proxy fallback
+                +--> Dynamic historical replay engine with proxy fallback
                 +--> OpenAI narrative layer
                 +--> Backtestable strategy spec
 ```
@@ -60,9 +61,10 @@ Next.js App Router UI
 Core modules:
 
 - `lib/portfolio.ts` - asset catalog, portfolio normalization, scoring, recommendations, agent signals, and strategy spec generation.
-- `lib/backtest.ts` - daily historical replay, benchmark comparison, Sharpe, max drawdown, turnover-cost handling, and proxy fallback support.
+- `lib/backtest.ts` - daily replay, dynamic weekly optimized strategy, benchmark comparison, Sharpe, max drawdown, turnover-cost handling, provider coverage, and proxy fallback support.
 - `lib/cmc.ts` - CoinMarketCap API client, id resolution, quote normalization, retries, and short server-side cache.
-- `lib/onchain.ts` - BNB Chain RPC wallet reads for native BNB and supported BEP-20 balances.
+- `lib/binance.ts` - Binance daily kline fallback for replay symbols that are unavailable through the configured CMC historical plan.
+- `lib/onchain.ts` - BNB Chain RPC wallet reads for native BNB, catalog BEP-20 balances, and optional contract-validated custom BEP-20 tokens.
 - `lib/openai-report.ts` - OpenAI Responses API integration for structured narrative output.
 - `lib/report-storage.ts` - versioned browser-local report persistence and clear-report support.
 - `components/portfolio-lab.tsx` - dashboard workflow and report generation UX.
@@ -71,9 +73,9 @@ Core modules:
 
 ## On-Chain Support
 
-The wallet route supports BNB Smart Chain assets declared in the local catalog, including native BNB and supported BEP-20 tokens such as BTCB/BTC exposure, ETH, USDT, USDC, LINK, CAKE, and DOGE. Balances are valued with live CoinMarketCap prices, converted into portfolio weights, and then passed through the same strategy engine as manual input.
+The wallet route supports BNB Smart Chain assets declared in the local catalog, including native BNB and BEP-20 tokens such as BTCB/BTC exposure, ETH, USDT, USDC, LINK, CAKE, and DOGE. Users can also paste custom BEP-20 token contracts before connecting a wallet. Custom contracts are read through RPC, checked against CoinMarketCap contract metadata before pricing, and reported as unpriced if a safe CMC id cannot be matched.
 
-No live trades are executed. CryptoPulse AI produces analysis and a backtestable strategy spec only.
+No live trades are executed. CryptoPulse AI produces analysis, simulation-only trade tickets, and a backtestable strategy spec only.
 
 ## Environment
 
@@ -143,6 +145,7 @@ Production guards included in the app:
 - Proxy IP headers are trusted only on Vercel or when `RATE_LIMIT_TRUST_PROXY=true`.
 - Timeouts for CoinMarketCap, OpenAI, and BNB Chain RPC calls.
 - Wallet token reads use per-token failure isolation so one bad RPC response does not fail the whole supported-asset snapshot.
+- Custom wallet tokens are priced only after contract-address validation against CoinMarketCap metadata.
 - Security headers, robots, sitemap, manifest, canonical metadata, and a production CSP without `unsafe-eval`.
 - Versioned browser-local report persistence with a visible Clear Report control.
 
