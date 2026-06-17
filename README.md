@@ -213,14 +213,16 @@ CryptoPulse AI is designed around the judging needs of a CMC Strategy Skill:
 - Resolves assets into CMC ids for reproducibility.
 - Produces a concrete strategy spec rather than generic buy/sell text.
 - Emits explicit `targetAllocation`, `signalRules`, `cmcSkill`, `backtestConfig`, and reproducibility metadata.
-- Attempts CMC historical daily replay and includes benchmark, Sharpe, drawdown, observation count, and turnover-cost effects when available.
+- Attempts CMC historical daily replay, fills missing supported symbols with Binance daily klines, and includes provider coverage, benchmark, Sharpe, drawdown, observation count, rebalance count, and turnover-cost effects when available.
+- Uses dynamic weekly optimized replay rules rather than a one-time static target allocation.
 - Includes risk guards, rebalance rules, cost assumptions, slippage assumptions, and benchmark.
-- Supports BNB Chain wallet reads for a real on-chain intake path.
+- Supports BNB Chain wallet reads for a real on-chain intake path, including optional custom BEP-20 contracts with contract-address validation before pricing.
+- Emits simulation-only execution intents for reviewable trade tickets without wallet approvals or live order placement.
 - Separates analysis, risk, recommendations, backtesting, and reasoning into clear product pages.
 
-## Current Limitations
+## Production Boundaries
 
-- Historical replay depends on CoinMarketCap historical quote access for the configured API key. If CMC returns insufficient history, the app falls back to quote-window proxy metrics and labels the method clearly.
-- The built-in replay uses daily quote prices and static target weights. A full external runner can still consume the exported JSON for more advanced OHLCV, intraday, or factor-based testing.
-- Wallet intake reads a curated BNB Chain asset catalog; unsupported tokens are ignored until added to `ASSET_CATALOG`.
-- The app is non-custodial and non-executing. It does not place trades or request token approvals.
+- Historical replay now tries CoinMarketCap first and uses Binance daily klines for missing exchange-traded assets. If neither provider supplies enough observations, the app keeps the clearly labeled quote-window proxy instead of pretending a replay ran.
+- The optimized replay now rebalances weekly with momentum-driven stable-buffer and satellite-sleeve adjustments. The exported JSON remains compatible with more advanced external runners for OHLCV, intraday, or factor-based testing.
+- Wallet intake now scans the curated BNB Chain catalog and optional custom BEP-20 contracts entered by the user. Custom contracts without a CoinMarketCap contract-address match are reported as unpriced instead of being silently ignored or priced by ticker alone.
+- The app remains intentionally non-custodial and non-executing. It produces simulation-only execution tickets, does not ask for private keys, does not request token approvals, and does not submit swaps or trades.
