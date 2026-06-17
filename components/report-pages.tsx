@@ -152,7 +152,7 @@ function RiskPage({ analysis }: { analysis: PortfolioAnalysis }) {
       <PageHero
         kicker="Risk Center"
         title="Drawdown Guardrails"
-        copy="The risk model combines volatility proxy, concentration, role exposure, and CMC sentiment into judge-readable guardrails."
+        copy="The risk model combines volatility proxy, concentration, role exposure, and CMC sentiment into practical portfolio guardrails."
         icon={ShieldAlert}
       />
 
@@ -217,7 +217,7 @@ function BacktestingPage({ analysis }: { analysis: PortfolioAnalysis }) {
       <PageHero
         kicker="Backtesting Lab"
         title="Strategy Spec Export"
-        copy="Track 2 needs a strategy skill that can be backtested. CryptoPulse emits the universe, filters, risk guards, and replay assumptions."
+        copy="Export the universe, filters, risk guards, costs, and replay assumptions behind the allocation plan."
         icon={LineChart}
       />
 
@@ -290,7 +290,7 @@ function ReasoningPage({ analysis }: { analysis: PortfolioAnalysis }) {
           <div className="space-y-4">
             <NarrativeLine label="Thesis" text={analysis.ai?.thesis ?? analysis.agentSignals[0]?.finding} />
             <NarrativeLine label="Doctor note" text={analysis.ai?.portfolioDoctorNote ?? analysis.agentSignals[1]?.finding} />
-            <NarrativeLine label="Judge pitch" text={analysis.ai?.judgePitch ?? analysis.strategySpec.trackFit} />
+            <NarrativeLine label="Strategy summary" text={analysis.ai?.strategySummary ?? analysis.strategySpec.trackFit} />
             <NarrativeLine label="Disclosure" text={analysis.ai?.riskDisclosure ?? "This is a backtestable strategy report, not financial advice or live execution."} />
           </div>
           <p className="mt-5 text-xs text-white/40">{analysis.aiStatus}</p>

@@ -10,7 +10,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="min-w-0">
           <span className="block text-sm font-semibold leading-tight text-white">CryptoPulse AI</span>
-          <span className="block text-[11px] leading-tight text-white/50">CMC Strategy Skill</span>
+          <span className="block text-[11px] leading-tight text-white/50">Portfolio Risk Lab</span>
         </span>
       )}
     </Link>

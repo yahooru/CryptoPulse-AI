@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   category: "finance",
   keywords: [
     "CoinMarketCap",
-    "CMC Strategy Skill",
+    "crypto portfolio doctor",
     "BNB Chain",
-    "AI trading agent",
+    "AI portfolio analyst",
     "portfolio risk",
     "crypto backtesting",
     "portfolio rebalancing",

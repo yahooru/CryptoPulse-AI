@@ -119,11 +119,11 @@ export function runHistoricalBacktest(params: {
       "Apply estimated turnover, transaction cost, and slippage at each rebalance.",
     ],
     notes: [
-      "Replay uses daily historical prices from CoinMarketCap first and Binance daily candles for missing exchange-traded assets.",
+      "Replay uses daily historical prices from CoinMarketCap first and Binance or Binance.US daily candles for missing exchange-traded assets.",
       "Optimized replay is a weekly dynamic rebalance, not a static one-time target allocation.",
       "Optimized return is reduced by estimated turnover, transaction cost, and slippage at each rebalance.",
       "Stablecoin sleeves are modeled as flat USD exposure unless CMC historical prices are available.",
-      "No live execution is triggered; Track 2 asks for strategy skills, not a live-trading agent.",
+      "No live execution is triggered; this is a research workflow, not a live-trading agent.",
     ],
   }
 }

@@ -178,7 +178,7 @@ export type StrategySpec = {
 export type AiNarrative = {
   thesis: string
   portfolioDoctorNote: string
-  judgePitch: string
+  strategySummary: string
   riskDisclosure: string
 }
 
@@ -559,7 +559,7 @@ function recommendationReason(
   meta?: AssetMeta,
 ) {
   if (action === "add") return `${symbol} improves the strategy universe for the backtest and reduces single-theme exposure.`
-  if (action === "increase") return `${symbol} is part of the core allocation target for a more durable BNB Hack strategy spec.`
+  if (action === "increase") return `${symbol} is part of the core allocation target for a more durable allocation plan.`
   if (action === "reduce" && current?.role === "meme") return `${symbol} is capped because meme exposure can dominate drawdown in risk-off windows.`
   if (action === "reduce") return `${symbol} is above its risk-adjusted target and should be rebalanced into core or stable exposure.`
   return `${symbol} stays close to target as a ${meta?.role ?? current?.role ?? "portfolio"} sleeve.`
@@ -595,8 +595,8 @@ function buildBacktestSummary(
     optimizedDrawdownProxy: round(optimizedDrawdownProxy),
     notes: [
       "The API attempts a daily replay first; quote-window proxy metrics are used only when historical providers cannot supply enough observations.",
-      "Transaction cost and slippage assumptions are included in the exported spec for judge reproducibility.",
-      "No live execution is triggered; Track 2 asks for strategy skills, not a live-trading agent.",
+      "Transaction cost and slippage assumptions are included in the exported spec for reproducibility.",
+      "No live execution is triggered; this is a research workflow, not a live-trading agent.",
     ],
   }
 }
@@ -679,7 +679,7 @@ function buildStrategySpec(
     schemaVersion: "1.0.0",
     name: "CryptoPulse AI Portfolio Doctor Skill",
     uniqueName: "cryptopulse_portfolio_doctor",
-    trackFit: "BNB Hack Track 2: CMC Strategy Skill that emits a reproducible, backtestable allocation spec.",
+    trackFit: "CryptoPulse emits a reproducible, backtestable allocation spec from portfolio inputs and live market data.",
     generatedAt: new Date().toISOString(),
     objective: "Convert a crypto portfolio into a risk-aware allocation strategy using CMC market data and BNB Chain portfolio reads.",
     dataSources: [

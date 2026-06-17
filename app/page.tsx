@@ -17,9 +17,28 @@ const nav = [
 ]
 
 const proofPoints = [
-  "CMC quotes, ids, sentiment, and Binance-backed replay fallback",
-  "BNB Chain wallet intake with catalog and custom contract checks",
-  "OpenAI reasoning layer with deterministic fallback",
+  "Live CMC market data with Binance-backed replay fallback",
+  "BNB Chain wallet intake with optional custom token checks",
+  "Clear risk, rebalance, and simulation notes before any action",
+]
+
+const workflow = [
+  {
+    title: "Start with your actual allocation",
+    body: "Paste simple weights or read a BNB Chain wallet snapshot. CryptoPulse normalizes the portfolio before scoring concentration, role exposure, and drawdown pressure.",
+  },
+  {
+    title: "Separate signal from noise",
+    body: "The analysis blends CMC quotes, sentiment, market-cap context, and replay coverage so the report explains what changed instead of throwing out generic crypto advice.",
+  },
+  {
+    title: "Review the rebalance plan",
+    body: "Targets are shown as weights, deltas, risk guards, and simulation-only tickets. Nothing is signed or executed from the app.",
+  },
+  {
+    title: "Export when you need depth",
+    body: "Download the JSON spec for deeper research, external backtesting, or sharing a reproducible allocation thesis with your team.",
+  },
 ]
 
 export default function HomePage() {
@@ -42,12 +61,12 @@ export default function HomePage() {
 
         <div className="hidden md:block">
           <Link href="/dashboard" className="cp-header-action">
-            Launch Skill
+            Open Dashboard
           </Link>
         </div>
 
         <button
-          className="cp-icon-button md:hidden"
+          className="cp-icon-button cp-home-menu-button"
           onClick={() => setMobileMenuOpen((open) => !open)}
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileMenuOpen}
@@ -65,7 +84,7 @@ export default function HomePage() {
             </Link>
           ))}
           <Link href="/dashboard" className="cp-header-action w-fit" onClick={() => setMobileMenuOpen(false)}>
-            Launch Skill
+            Open Dashboard
           </Link>
         </div>
       )}
@@ -82,7 +101,7 @@ export default function HomePage() {
               </LineShadowText>
             </h1>
             <p>
-              A CMC Strategy Skill for BNB Hack Track 2: diagnose a crypto portfolio, read BNB Chain holdings, generate an optimized allocation, and export a backtestable spec.
+              Diagnose your crypto allocation with live market data, BNB Chain wallet intake, dynamic replay, and a clear rebalance plan you can review before taking action.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/dashboard" className="cp-primary-link cp-primary-action">
@@ -90,7 +109,7 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="/backtesting" className="cp-secondary-action">
-                View Strategy Spec
+                View Replay Lab
               </Link>
             </div>
             <div className="cp-proof-list">
@@ -105,7 +124,7 @@ export default function HomePage() {
 
           <div className="cp-hero-instrument" aria-label="CryptoPulse AI strategy flow preview">
             <div className="cp-instrument-topline">
-              <span>Strategy Skill</span>
+              <span>Portfolio Engine</span>
               <strong>Live after diagnosis</strong>
             </div>
             <div className="cp-live-state">
@@ -116,21 +135,33 @@ export default function HomePage() {
             <div className="cp-instrument-flow">
               <FlowStep icon={Wallet} label="BNB Chain intake" value="wallet or manual" />
               <FlowStep icon={BarChart3} label="CMC market data" value="quotes + sentiment" />
-              <FlowStep icon={Brain} label="AI committee" value="risk + optimizer" />
-              <FlowStep icon={LineChart} label="Backtest spec" value="JSON export" />
+              <FlowStep icon={Brain} label="AI reasoning" value="risk + optimizer" />
+              <FlowStep icon={LineChart} label="Replay lab" value="JSON export" />
             </div>
           </div>
         </section>
 
         <section className="cp-home-band">
           <div>
-            <p className="cp-kicker">What the judges see</p>
-            <h2>Not a price predictor. A reproducible portfolio strategy skill.</h2>
+            <p className="cp-kicker">Portfolio clarity</p>
+            <h2>Know what you hold, what is risky, and what a cleaner allocation could look like.</h2>
           </div>
           <div className="cp-home-columns">
             <Feature title="Data discipline" body="Symbols resolve into CMC ids, then server routes fetch quotes, market cap, volume, return windows, and sentiment with API-key isolation." />
             <Feature title="On-chain intake" body="Trust Wallet or another EVM wallet can switch to BNB Smart Chain and read native BNB, catalog assets, and user-supplied BEP-20 contracts through RPC." />
-            <Feature title="Backtest ready" body="The app exports universe, filters, risk guards, slippage, costs, benchmark, dynamic replay rules, and simulation-only trade tickets." />
+            <Feature title="Replay ready" body="The app shows provider coverage, benchmark comparison, dynamic weekly replay rules, costs, slippage, and simulation-only trade tickets." />
+          </div>
+        </section>
+
+        <section className="cp-home-band">
+          <div>
+            <p className="cp-kicker">How it helps</p>
+            <h2>Move from scattered holdings to a portfolio report you can actually reason about.</h2>
+          </div>
+          <div className="cp-home-columns">
+            {workflow.map((item) => (
+              <Feature key={item.title} title={item.title} body={item.body} />
+            ))}
           </div>
         </section>
       </main>

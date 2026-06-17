@@ -44,7 +44,7 @@ export async function generateAiNarrative(analysis: PortfolioAnalysis): Promise<
           {
             role: "system",
             content:
-              "You are CryptoPulse AI, a portfolio-risk assistant for a BNB Hack Track 2 CMC Strategy Skill. Return concise, non-advisory portfolio reasoning only. Do not promise profit. Do not recommend live trades. Focus on backtestable strategy rules.",
+              "You are CryptoPulse AI, a portfolio-risk assistant for crypto allocation research. Return concise, non-advisory portfolio reasoning only. Do not promise profit. Do not recommend live trades. Focus on risk, replay evidence, and reviewable allocation rules.",
           },
           {
             role: "user",
@@ -59,11 +59,11 @@ export async function generateAiNarrative(analysis: PortfolioAnalysis): Promise<
             schema: {
               type: "object",
               additionalProperties: false,
-              required: ["thesis", "portfolioDoctorNote", "judgePitch", "riskDisclosure"],
+              required: ["thesis", "portfolioDoctorNote", "strategySummary", "riskDisclosure"],
               properties: {
                 thesis: { type: "string" },
                 portfolioDoctorNote: { type: "string" },
-                judgePitch: { type: "string" },
+                strategySummary: { type: "string" },
                 riskDisclosure: { type: "string" },
               },
             },

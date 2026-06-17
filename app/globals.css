@@ -281,6 +281,10 @@
   border: var(--rule-hairline) solid var(--color-rule);
 }
 
+.cp-home-menu-button {
+  display: none;
+}
+
 .cp-mobile-menu {
   position: absolute;
   top: 4.75rem;
@@ -963,6 +967,10 @@
 }
 
 @media (max-width: 780px) {
+  .cp-home-menu-button {
+    display: inline-flex;
+  }
+
   .cp-home-header,
   .cp-app-header {
     padding: var(--space-md);

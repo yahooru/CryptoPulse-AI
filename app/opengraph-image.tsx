@@ -46,7 +46,7 @@ export default function Image() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ color: "#fed7aa", fontSize: 24, fontWeight: 700 }}>
-              BNB Hack Track 2
+              Portfolio Risk Lab
             </div>
             <div style={{ color: "#ffffff", fontSize: 38, fontWeight: 800 }}>{SITE_NAME}</div>
           </div>
@@ -54,7 +54,7 @@ export default function Image() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ maxWidth: 940, fontSize: 72, lineHeight: 0.96, fontWeight: 900 }}>
-            AI Portfolio Doctor for CMC Strategy Specs
+            AI Portfolio Doctor for Crypto Allocations
           </div>
           <div style={{ maxWidth: 900, color: "#d1d5db", fontSize: 30, lineHeight: 1.35 }}>
             {SITE_DESCRIPTION}
@@ -66,7 +66,7 @@ export default function Image() {
           <span>/</span>
           <span>BNB Chain wallet reads</span>
           <span>/</span>
-          <span>Backtestable JSON</span>
+          <span>Replay-ready JSON</span>
         </div>
       </div>
     ),

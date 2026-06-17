@@ -2,7 +2,7 @@ import type { HistoricalPriceSeries } from "@/lib/backtest"
 import { CATALOG_BY_SYMBOL } from "@/lib/portfolio"
 import { fetchWithTimeout } from "@/lib/fetch-timeout"
 
-const BINANCE_BASE_URL = "https://api.binance.com"
+const BINANCE_BASE_URLS = ["https://api.binance.com", "https://api.binance.us"]
 const BINANCE_SYMBOL_BY_ASSET = new Map<string, string>([
   ["BTC", "BTCUSDT"],
   ["ETH", "ETHUSDT"],
@@ -62,41 +62,52 @@ async function fetchBinanceDailyKlines(symbol: string, count: number): Promise<H
   const marketSymbol = BINANCE_SYMBOL_BY_ASSET.get(symbol)
   if (!marketSymbol) return null
 
-  const url = new URL("/api/v3/klines", BINANCE_BASE_URL)
-  url.searchParams.set("symbol", marketSymbol)
-  url.searchParams.set("interval", "1d")
-  url.searchParams.set("limit", String(Math.max(30, Math.min(1000, count))))
+  let lastError: Error | null = null
 
-  const response = await fetchWithTimeout(url, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 3_600 },
-  }, 12_000, "Binance daily klines")
+  for (const baseUrl of BINANCE_BASE_URLS) {
+    const url = new URL("/api/v3/klines", baseUrl)
+    url.searchParams.set("symbol", marketSymbol)
+    url.searchParams.set("interval", "1d")
+    url.searchParams.set("limit", String(Math.max(30, Math.min(1000, count))))
 
-  if (!response.ok) {
-    throw new Error(`Binance ${marketSymbol} klines failed with HTTP ${response.status}.`)
+    const response = await fetchWithTimeout(url, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 3_600 },
+    }, 12_000, "Binance daily klines")
+
+    if (!response.ok) {
+      lastError = new Error(`${new URL(baseUrl).hostname} ${marketSymbol} klines failed with HTTP ${response.status}.`)
+      continue
+    }
+
+    const raw = (await response.json()) as BinanceKline[]
+    const points = raw
+      .map((kline) => {
+        const timestamp = Number(kline[0])
+        const close = Number(kline[4])
+        if (!Number.isFinite(timestamp) || !Number.isFinite(close) || close <= 0) return null
+        return {
+          timestamp: new Date(timestamp).toISOString(),
+          price: close,
+        }
+      })
+      .filter((point): point is { timestamp: string; price: number } => point !== null)
+
+    if (points.length < 20) {
+      lastError = new Error(`${new URL(baseUrl).hostname} ${marketSymbol} returned insufficient daily candles.`)
+      continue
+    }
+
+    return {
+      cmcId: CATALOG_BY_SYMBOL.get(symbol)?.cmcId ?? 0,
+      symbol,
+      source: "binance",
+      points,
+    }
   }
 
-  const raw = (await response.json()) as BinanceKline[]
-  const points = raw
-    .map((kline) => {
-      const timestamp = Number(kline[0])
-      const close = Number(kline[4])
-      if (!Number.isFinite(timestamp) || !Number.isFinite(close) || close <= 0) return null
-      return {
-        timestamp: new Date(timestamp).toISOString(),
-        price: close,
-      }
-    })
-    .filter((point): point is { timestamp: string; price: number } => point !== null)
-
-  if (points.length < 20) return null
-
-  return {
-    cmcId: CATALOG_BY_SYMBOL.get(symbol)?.cmcId ?? 0,
-    symbol,
-    source: "binance",
-    points,
-  }
+  if (lastError) throw lastError
+  return null
 }
 
 function isStable(symbol: string) {

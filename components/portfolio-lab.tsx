@@ -166,7 +166,7 @@ export function PortfolioLab() {
             <p className="cp-kicker">Strategy intake</p>
             <h1 className="cp-page-title">Portfolio Doctor</h1>
             <p className="cp-muted max-w-2xl">
-              Enter allocation weights or connect a BNB Chain wallet. CryptoPulse pulls CMC data server-side, scores the portfolio, and exports a Track 2 strategy spec.
+              Enter allocation weights or connect a BNB Chain wallet. CryptoPulse pulls market data server-side, scores the portfolio, and builds a replay-ready allocation report.
             </p>
           </div>
 
@@ -363,7 +363,7 @@ function AnalysisResults({ analysis }: { analysis: PortfolioAnalysis }) {
           <div className="space-y-4">
             <ReasonLine icon={Sparkles} label="Thesis" text={narrative?.thesis ?? analysis.agentSignals[0]?.finding ?? "CMC-backed strategy generated."} />
             <ReasonLine icon={CheckCircle2} label="Doctor note" text={narrative?.portfolioDoctorNote ?? analysis.agentSignals[1]?.finding ?? "Risk sleeve computed."} />
-            <ReasonLine icon={RefreshCcw} label="Judge pitch" text={narrative?.judgePitch ?? "Track 2 output is a reproducible allocation spec backed by CMC data and BNB Chain reads."} />
+            <ReasonLine icon={RefreshCcw} label="Strategy summary" text={narrative?.strategySummary ?? "Reproducible allocation report backed by CMC data, BNB Chain reads, and replay assumptions."} />
           </div>
           <p className="mt-5 text-xs text-white/40">{analysis.aiStatus}</p>
         </div>
