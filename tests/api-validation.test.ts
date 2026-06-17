@@ -30,7 +30,7 @@ describe("API validation", () => {
 
   it("rejects streamed JSON bodies over the byte cap", async () => {
     const largeBody = JSON.stringify({
-      portfolioText: `BTC ${"1".repeat(40_000)}%`,
+      portfolioText: `BTC ${"1".repeat(80_000)}%`,
     })
     const request = new Request("https://cryptopulse.local/api/portfolio/analyze", {
       method: "POST",
@@ -46,5 +46,20 @@ describe("API validation", () => {
     if (!parsed.ok) {
       expect(parsed.response.status).toBe(413)
     }
+  })
+
+  it("accepts custom token contracts for wallet reads", () => {
+    const parsed = onchainBodySchema.safeParse({
+      walletAddress: "0x0000000000000000000000000000000000000001",
+      customTokens: [
+        {
+          address: "0x0000000000000000000000000000000000000002",
+          symbol: "ABC",
+          decimals: 18,
+        },
+      ],
+    })
+
+    expect(parsed.success).toBe(true)
   })
 })

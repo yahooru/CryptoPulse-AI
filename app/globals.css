@@ -759,7 +759,8 @@
 
 .cp-reco-row,
 .cp-recommendation-tile,
-.cp-disclosure {
+.cp-disclosure,
+.cp-ticket-row {
   border: var(--rule-hairline) solid var(--color-rule);
   border-radius: var(--radius-sm);
   background: rgb(255 255 255 / 0.05);
@@ -775,6 +776,21 @@
 
 .cp-recommendation-tile {
   padding: var(--space-lg);
+}
+
+.cp-ticket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm);
+}
+
+.cp-coverage-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
 }
 
 .cp-disclosure {

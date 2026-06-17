@@ -53,7 +53,10 @@ export async function readBnbChainPortfolio(
     throw new Error("Invalid BNB Chain wallet address.")
   }
 
-  const bscAssets = ASSET_CATALOG.filter((asset) => asset.bsc)
+  const bscAssets = ASSET_CATALOG.filter((asset): asset is ReadableBscAsset => Boolean(asset.bsc)).map((asset) => ({
+    ...asset,
+    source: "catalog" as const,
+  }))
   const customAssets = await resolveCustomAssets(customTokens, bscAssets)
   const assets = [...bscAssets, ...customAssets]
   const balanceResults = await Promise.allSettled(

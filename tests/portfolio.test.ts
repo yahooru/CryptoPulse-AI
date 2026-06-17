@@ -106,6 +106,11 @@ describe("portfolio analysis", () => {
     expect(replayed.backtest.method).toBe("historical-replay")
     expect(replayed.backtest.observations).toBeGreaterThanOrEqual(20)
     expect(replayed.backtest.benchmarkReturn).toBeDefined()
+    expect(replayed.backtest.dataProvider).toBe("coinmarketcap")
+    expect(replayed.backtest.rebalanceEvents).toBeGreaterThan(1)
+    expect(replayed.backtest.dynamicRules?.length).toBeGreaterThan(0)
+    expect(replayed.backtest.dataCoverage?.coveragePct).toBeGreaterThan(50)
+    expect(replayed.strategySpec.execution.intents.some((intent) => intent.side !== "hold")).toBe(true)
   })
 })
 

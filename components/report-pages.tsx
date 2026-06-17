@@ -16,7 +16,7 @@ import {
   Target,
 } from "lucide-react"
 
-import type { AgentSignal, PortfolioAnalysis, Recommendation, StrategySpec } from "@/lib/portfolio"
+import type { AgentSignal, ExecutionIntent, PortfolioAnalysis, Recommendation, StrategySpec } from "@/lib/portfolio"
 import { clearStoredAnalysis, readStoredAnalysis } from "@/lib/report-storage"
 import { cn } from "@/lib/utils"
 
@@ -235,6 +235,12 @@ function BacktestingPage({ analysis }: { analysis: PortfolioAnalysis }) {
             )}
             <ScoreBlock label="Current drawdown" value={formatPercent(analysis.backtest.currentDrawdownProxy)} />
             <ScoreBlock label="Optimized drawdown" value={formatPercent(analysis.backtest.optimizedDrawdownProxy)} tone="good" />
+            {analysis.backtest.optimizedSharpe !== undefined && (
+              <ScoreBlock label="Optimized Sharpe" value={String(analysis.backtest.optimizedSharpe)} tone="good" />
+            )}
+            {analysis.backtest.rebalanceEvents !== undefined && (
+              <ScoreBlock label="Rebalances" value={String(analysis.backtest.rebalanceEvents)} />
+            )}
           </div>
           <p className="mt-4 text-xs text-white/40">
             {analysis.backtest.lookbackLabel}
@@ -242,6 +248,13 @@ function BacktestingPage({ analysis }: { analysis: PortfolioAnalysis }) {
               ? ` / ${analysis.backtest.startDate} to ${analysis.backtest.endDate}`
               : ""}
           </p>
+          {analysis.backtest.dataCoverage && (
+            <div className="cp-coverage-strip">
+              <ScoreBlock label="Provider" value={formatProvider(analysis.backtest.dataProvider)} tone="good" />
+              <ScoreBlock label="Coverage" value={`${analysis.backtest.dataCoverage.coveragePct}%`} tone="good" />
+              <ScoreBlock label="Missing" value={analysis.backtest.dataCoverage.missingAssets.length ? analysis.backtest.dataCoverage.missingAssets.join(", ") : "None"} />
+            </div>
+          )}
           <button className="cp-secondary-action mt-5" onClick={() => downloadSpec(analysis)}>
             <Download className="h-4 w-4" aria-hidden="true" />
             Download JSON spec
@@ -249,6 +262,10 @@ function BacktestingPage({ analysis }: { analysis: PortfolioAnalysis }) {
         </div>
 
         <SpecPanel spec={analysis.strategySpec} />
+      </section>
+      <section className="cp-section-grid">
+        <DynamicRulesPanel analysis={analysis} />
+        <ExecutionPlanPanel intents={analysis.strategySpec.execution.intents} />
       </section>
     </div>
   )
@@ -394,6 +411,52 @@ function SpecPanel({ spec }: { spec: StrategySpec }) {
   )
 }
 
+function DynamicRulesPanel({ analysis }: { analysis: PortfolioAnalysis }) {
+  return (
+    <div className="cp-panel">
+      <div className="cp-panel-heading">
+        <p className="cp-kicker">Replay engine</p>
+        <h2>Dynamic strategy rules</h2>
+      </div>
+      <SpecList
+        title="Rule set"
+        items={analysis.backtest.dynamicRules?.length ? analysis.backtest.dynamicRules : analysis.strategySpec.rebalanceRules}
+      />
+      <SpecList title="Run notes" items={analysis.backtest.notes.slice(0, 4)} />
+    </div>
+  )
+}
+
+function ExecutionPlanPanel({ intents }: { intents: ExecutionIntent[] }) {
+  return (
+    <div className="cp-panel">
+      <div className="cp-panel-heading">
+        <p className="cp-kicker">Execution simulation</p>
+        <h2>Reviewable trade tickets</h2>
+      </div>
+      <div className="space-y-3">
+        {intents.slice(0, 6).map((intent) => (
+          <div key={intent.symbol} className="cp-ticket-row">
+            <div>
+              <p className="font-semibold text-white">{intent.symbol}</p>
+              <p className="text-xs text-white/45">
+                {formatPercent(intent.fromWeight)} to {formatPercent(intent.toWeight)}
+              </p>
+            </div>
+            <span className={cn("cp-reco-delta", intent.side === "buy" ? "is-positive" : intent.side === "sell" ? "is-negative" : "")}>
+              {intent.side.toUpperCase()} {intent.deltaWeight > 0 ? "+" : ""}
+              {formatPercent(intent.deltaWeight)}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs text-white/40">
+        Simulation only. CryptoPulse does not request approvals, sign swaps, or move funds.
+      </p>
+    </div>
+  )
+}
+
 function SpecList({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="mt-5">
@@ -502,4 +565,11 @@ function formatUsd(value: number) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
   }
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumSignificantDigits: 4 }).format(value)
+}
+
+function formatProvider(provider: PortfolioAnalysis["backtest"]["dataProvider"]) {
+  if (provider === "binance") return "Binance"
+  if (provider === "coinmarketcap+binance") return "CMC + Binance"
+  if (provider === "coinmarketcap") return "CMC"
+  return "Proxy"
 }
