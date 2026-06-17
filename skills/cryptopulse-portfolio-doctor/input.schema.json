@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cryptopulse-ai.local/skills/cryptopulse-portfolio-doctor/input.schema.json",
+  "title": "CryptoPulse Portfolio Doctor Input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "portfolioText": {
+      "type": "string",
+      "maxLength": 5000,
+      "description": "Manual portfolio input, one asset per line, such as BTC 45%."
+    },
+    "positions": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["symbol"],
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "pattern": "^[a-zA-Z0-9.-]+$"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "usdValue": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "walletAddress": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Optional BNB Chain wallet address for host apps that support wallet intake."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["manual", "bnb-chain"],
+      "default": "manual"
+    },
+    "riskMode": {
+      "type": "string",
+      "enum": ["conservative", "balanced", "aggressive"],
+      "default": "balanced"
+    }
+  },
+  "anyOf": [
+    { "required": ["portfolioText"] },
+    { "required": ["positions"] },
+    { "required": ["walletAddress"] }
+  ]
+}
