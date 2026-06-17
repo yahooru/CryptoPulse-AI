@@ -84,8 +84,18 @@ export type Recommendation = {
   rationale: string
 }
 
+export type ExecutionIntent = {
+  symbol: string
+  side: "buy" | "sell" | "hold"
+  deltaWeight: number
+  fromWeight: number
+  toWeight: number
+  rationale: string
+}
+
 export type BacktestSummary = {
   method: "historical-replay" | "quote-window-proxy"
+  dataProvider?: "coinmarketcap" | "binance" | "coinmarketcap+binance" | "quote-window"
   lookbackLabel: string
   currentReturn: number
   optimizedReturn: number
@@ -99,6 +109,14 @@ export type BacktestSummary = {
   endDate?: string
   observations?: number
   turnoverCost?: number
+  rebalanceEvents?: number
+  dataCoverage?: {
+    requestedAssets: number
+    replayedAssets: number
+    missingAssets: string[]
+    coveragePct: number
+  }
+  dynamicRules?: string[]
   notes: string[]
 }
 
@@ -128,6 +146,11 @@ export type StrategySpec = {
   entryFilters: string[]
   exitFilters: string[]
   riskGuards: string[]
+  execution: {
+    mode: "simulation-only"
+    intents: ExecutionIntent[]
+    walletSafety: string[]
+  }
   cmcSkill: {
     routingIntent: string
     inputSchemaPath: string
@@ -710,6 +733,15 @@ function buildStrategySpec(
       "Maximum meme sleeve weight: 8 percent.",
       "Fail the strategy if drawdown proxy breaches -18 percent during replay.",
     ],
+    execution: {
+      mode: "simulation-only",
+      intents: buildExecutionIntents(positions, targetAllocation, new Map(recommendationsFromTargets(positions, targetWeights).map((item) => [item.symbol, item.rationale]))),
+      walletSafety: [
+        "No private keys are requested.",
+        "No wallet transaction, token approval, or swap is submitted.",
+        "Trade intents are simulation tickets that can be reviewed before using any external execution venue.",
+      ],
+    },
     cmcSkill: {
       routingIntent: "portfolio allocation diagnosis, risk-aware rebalance strategy, and backtestable strategy spec generation",
       inputSchemaPath: "skills/cryptopulse-portfolio-doctor/input.schema.json",
@@ -742,4 +774,35 @@ function buildStrategySpec(
       cmcIds: universe.map((asset) => asset.cmcId),
     },
   }
+}
+
+function recommendationsFromTargets(positions: PortfolioPosition[], targets: Map<string, number>) {
+  return buildRecommendations(positions, targets)
+}
+
+function buildExecutionIntents(
+  positions: PortfolioPosition[],
+  targetAllocation: Array<{ symbol: string; weight: number }>,
+  rationaleBySymbol: Map<string, string>,
+): ExecutionIntent[] {
+  const currentBySymbol = new Map(positions.map((position) => [position.symbol, position.weight]))
+  const symbols = new Set([...currentBySymbol.keys(), ...targetAllocation.map((item) => item.symbol)])
+
+  return Array.from(symbols)
+    .map((symbol) => {
+      const fromWeight = round(currentBySymbol.get(symbol) ?? 0)
+      const toWeight = round(targetAllocation.find((item) => item.symbol === symbol)?.weight ?? 0)
+      const deltaWeight = round(toWeight - fromWeight)
+      const side: ExecutionIntent["side"] = deltaWeight > 0.5 ? "buy" : deltaWeight < -0.5 ? "sell" : "hold"
+      return {
+        symbol,
+        side,
+        deltaWeight,
+        fromWeight,
+        toWeight,
+        rationale: rationaleBySymbol.get(symbol) ?? "Keep this sleeve close to the generated strategy target.",
+      }
+    })
+    .filter((intent) => Math.abs(intent.deltaWeight) >= 0.5 || intent.side === "hold")
+    .sort((a, b) => Math.abs(b.deltaWeight) - Math.abs(a.deltaWeight))
 }
