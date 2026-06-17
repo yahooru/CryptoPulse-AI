@@ -85,6 +85,7 @@ export function runHistoricalBacktest(params: {
     "BNB",
   ])
   const replayedSymbols = new Set(historyBySymbol.keys())
+  const coveredSymbols = Array.from(requestedSymbols).filter((symbol) => isStableSymbol(symbol) || replayedSymbols.has(symbol))
   const missingAssets = Array.from(requestedSymbols).filter((symbol) => !isStableSymbol(symbol) && !replayedSymbols.has(symbol))
   const provider = classifyProvider(params.historicalSeries)
 
@@ -107,9 +108,9 @@ export function runHistoricalBacktest(params: {
     rebalanceEvents: optimized.rebalanceEvents,
     dataCoverage: {
       requestedAssets: requestedSymbols.size,
-      replayedAssets: replayedSymbols.size,
+      replayedAssets: coveredSymbols.length,
       missingAssets,
-      coveragePct: round((replayedSymbols.size / Math.max(1, requestedSymbols.size)) * 100),
+      coveragePct: round((coveredSymbols.length / Math.max(1, requestedSymbols.size)) * 100),
     },
     dynamicRules: [
       "Weekly rebalance to target sleeves.",

@@ -17,8 +17,8 @@ const nav = [
 ]
 
 const proofPoints = [
-  "CMC quotes, ids, sentiment, and historical-ready spec",
-  "BNB Chain wallet read path for on-chain portfolio intake",
+  "CMC quotes, ids, sentiment, and Binance-backed replay fallback",
+  "BNB Chain wallet intake with catalog and custom contract checks",
   "OpenAI reasoning layer with deterministic fallback",
 ]
 
@@ -129,8 +129,8 @@ export default function HomePage() {
           </div>
           <div className="cp-home-columns">
             <Feature title="Data discipline" body="Symbols resolve into CMC ids, then server routes fetch quotes, market cap, volume, return windows, and sentiment with API-key isolation." />
-            <Feature title="On-chain intake" body="Trust Wallet or another EVM wallet can switch to BNB Smart Chain and read native BNB plus supported BEP-20 balances through RPC." />
-            <Feature title="Backtest ready" body="The app exports universe, filters, risk guards, slippage, costs, benchmark, and rebalance rules instead of stopping at generic advice." />
+            <Feature title="On-chain intake" body="Trust Wallet or another EVM wallet can switch to BNB Smart Chain and read native BNB, catalog assets, and user-supplied BEP-20 contracts through RPC." />
+            <Feature title="Backtest ready" body="The app exports universe, filters, risk guards, slippage, costs, benchmark, dynamic replay rules, and simulation-only trade tickets." />
           </div>
         </section>
       </main>

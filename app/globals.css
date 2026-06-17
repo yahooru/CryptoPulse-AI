@@ -981,7 +981,8 @@
   }
 
   .cp-section-grid,
-  .cp-score-strip {
+  .cp-score-strip,
+  .cp-coverage-strip {
     grid-template-columns: 1fr;
   }
 
