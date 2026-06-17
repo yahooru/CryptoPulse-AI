@@ -6,6 +6,7 @@ import {
   validationErrorMessage,
 } from "@/lib/api-validation"
 import { applyHistoricalBacktest } from "@/lib/backtest"
+import { fetchBinanceDailyKlinesForSymbols } from "@/lib/binance"
 import { fetchCmcQuotes, fetchFearGreedLatest, fetchHistoricalQuotesForIds, resolveCmcIds, CmcApiError } from "@/lib/cmc"
 import { generateAiNarrative, hasOpenAiKey } from "@/lib/openai-report"
 import {
@@ -101,15 +102,23 @@ export async function POST(request: Request) {
       analysis.strategySpec.reproducibility.cmcIds,
       analysis.strategySpec.backtestConfig.lookbackDays,
     )
-    analysis = applyHistoricalBacktest(analysis, historical.series)
-    if (analysis.backtest.method === "quote-window-proxy" && historical.errors.length) {
+    const cmcHistoricalSymbols = new Set(historical.series.map((series) => series.symbol.toUpperCase()))
+    const missingHistoricalSymbols = analysis.strategySpec.universe
+      .map((asset) => asset.symbol)
+      .filter((symbol) => !cmcHistoricalSymbols.has(symbol.toUpperCase()))
+    const binanceHistorical = await fetchBinanceDailyKlinesForSymbols(
+      missingHistoricalSymbols,
+      analysis.strategySpec.backtestConfig.lookbackDays,
+    )
+    analysis = applyHistoricalBacktest(analysis, [...historical.series, ...binanceHistorical.series])
+    if (analysis.backtest.method === "quote-window-proxy" && (historical.errors.length || binanceHistorical.errors.length)) {
       analysis = {
         ...analysis,
         backtest: {
           ...analysis.backtest,
           notes: [
             ...analysis.backtest.notes,
-            `Historical CMC replay unavailable for this run: ${historical.errors
+            `Historical replay unavailable for this run: ${[...historical.errors, ...binanceHistorical.errors]
               .slice(0, 3)
               .map((item) => item.message)
               .join("; ")}`,

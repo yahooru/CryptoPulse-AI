@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-const MAX_JSON_BYTES = 32_768
+const MAX_JSON_BYTES = 65_536
 
 const symbolSchema = z
   .string()
