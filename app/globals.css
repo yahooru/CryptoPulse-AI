@@ -1016,6 +1016,10 @@
     grid-template-columns: 1fr;
   }
 
+  .cp-sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
   .cp-reco-row {
     align-items: flex-start;
     flex-direction: column;
